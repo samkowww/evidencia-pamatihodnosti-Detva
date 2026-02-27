@@ -16,7 +16,7 @@ var Narodne_kult = {
         Vznik: 0,
         PICURL: "kostol.jpg",
         PICURL1: "kostol1.jpg",
-        PICURL2: "kostol2.JPG",
+        PICURL2: "kostol2.jpg",
         PICURL3: "kostol_inter.jpg",
         PICURL4: "kostol_inter1.jpg",
         Text_k:
