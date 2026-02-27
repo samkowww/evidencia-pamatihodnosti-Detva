@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title></title>
+    <link rel="stylesheet" href="index.css" />
+    <script src="sakralne_pam.js"></script>
+    <style>
+        html,
+        body {
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .category {
+            color: #912d2d;
+            margin-top: 80px;
+            margin-bottom: none;
+        }
+
+        #content {
+            padding-left: 5px;
+            padding-top: 30px;
+        }
+
+        #images-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: nowrap;
+            margin-bottom: 10px;
+        }
+
+        #images-container img {
+            width: 300px;
+            height: auto;
+            border-radius: 8px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #images-container img:hover {
+            transform: scale(1.05);
+        }
+
+        #images-container2 {
+            display: flex;
+            gap: 20px;
+            flex-wrap: nowrap;
+            margin-bottom: 10px;
+        }
+
+        #images-container2 img {
+            width: 300px;
+            height: auto;
+            border-radius: 8px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #images-container2 img:hover {
+            transform: scale(1.05);
+        }
+
+        #text1 {
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        #Zdroj {
+            font-size: 13px;
+            margin-top: 50px;
+        }
+
+
+        #lightbox {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+        }
+
+        #lightbox span {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="logo">
+            <h2>
+                <a href="https://www.detva.sk/" target="_blank">
+                    <img src="obrazky/logo.png" alt="Logo">
+                </a>
+            </h2>
+        </div>
+        <h1>Pamätihodnosti obce Detva</h1>
+        <ul>
+            <li><a href="index.html">Domov</a></li>
+            <li><a href="nehmotne.html"> Významné osobnosti a historické publikácie</a></li>
+        </ul>
+    </nav>
+
+    <main id="content">
+        <h1 id="nazov" class="category "></h1>
+        <p id="Typ" style="font-size: 15px; font-weight: bold;"></p>
+        <div id="images-container">
+            <img id="obrazok" alt="Hlavný obrázok" style="display:none;" />
+            <img id="obrazok2" alt="Druhý obrázok" style="display:none;" />
+            <img id="obrazok3" alt="Tretí obrázok" style="display:none;" />
+        </div>
+        <p><strong>Postavený/á:</strong> <span id="Rok"></span></p>
+        <p id="Text1"></p>
+        <div id="images-container2">
+            <img id="obrazok4" alt="Tretí obrázok" style="display:none;" />
+            <img id="obrazok5" style="display:none;" />
+            <img id="obrazok6" style="display:none;" />
+        </div>
+        <p><strong>Web:</strong> <a id="Stranka" target="_blank"></a> </p>
+        <p><strong>Telefón:</strong> <a id="Cislo"></a></p>
+        <p><strong>Email:</strong> <a id="Mail"></a></p>
+        <p><strong>Lokalita:</strong> <span id="Lokalita"></span></p>
+        <p><strong>Súradnice:</strong>
+            <a id="suradnic-link" href="#" target="_blank"
+                style="color:blue; text-decoration:underline; font-weight:bold;"></a>
+        </p>
+        <p><strong>Parcela:</strong> <a id="Parcela"></a></p>
+        <p id="Zdroj"></p>
+    </main>
+
+
+    <div id="lightbox">
+        <span id="closeLightbox">&times;</span>
+        <img id="lightbox-img" src="" alt="Zväčšený obrázok">
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const id = parseInt(params.get('id'));
+        const allData = Sakralne_pam.features;
+        const objekt = allData.find(f => f.id === id);
+        const folder = 'obrazky/sakralne_pam';
+
+        if (objekt) {
+            const p = objekt.properties;
+
+
+            document.title = p.Nazov + " – Detva";
+
+            document.getElementById('nazov').textContent = p.Nazov;
+            document.getElementById('Typ').textContent = p.Typ || 'Sakrálna pamiatka';
+            document.getElementById('Rok').textContent = p.Vznik || '';
+            document.getElementById('Text1').textContent = p.Text1 || '';
+            document.getElementById('Zdroj').innerHTML = p.Zdroj || '';
+            document.getElementById('Lokalita').textContent = p.Lokalita || '';
+            document.getElementById('Stranka').textContent = p.Stranka || '';
+            document.getElementById('Mail').textContent = p.Mail || '';
+            document.getElementById('Cislo').textContent = p.Tel_cislo || '';
+            document.getElementById('Parcela').textContent = p.Parcela || 'Nie je uvedená';
+
+
+            const rokElement = document.getElementById('Rok');
+            if (p.Vznik) {
+                rokElement.textContent = p.Vznik;
+            } else {
+                rokElement.parentElement.style.display = 'none';
+            }
+
+
+            const strankaElement = document.getElementById('Stranka');
+            if (p.Stranka && p.Stranka.trim() !== "") {
+                strankaElement.textContent = p.Stranka;
+                strankaElement.href = p.Stranka;
+            } else {
+                strankaElement.parentElement.style.display = 'none';
+            }
+
+
+            const cisloElement = document.getElementById('Cislo');
+            if (p.Tel_cislo && p.Tel_cislo.trim() !== "") {
+                cisloElement.textContent = p.Tel_cislo;
+                cisloElement.href = `tel:${p.Tel_cislo}`;
+            } else {
+                cisloElement.parentElement.style.display = 'none';
+            }
+
+
+            const mailElement = document.getElementById('Mail');
+            if (p.Mail && p.Mail.trim() !== "") {
+                mailElement.textContent = p.Mail;
+                mailElement.href = `mail:${p.Mail}`;
+            } else {
+                mailElement.parentElement.style.display = 'none';
+            }
+
+            const suradnicLink = document.getElementById('suradnic-link');
+            if (p.DLZKA && p.SIRKA) {
+                const dlzka = p.DLZKA;
+                const sirka = p.SIRKA;
+                suradnicLink.textContent = `${sirka}, ${dlzka}`;
+                suradnicLink.href = p.Google_map;
+                suradnicLink.style.color = "blue";
+                suradnicLink.style.textDecoration = "underline";
+                suradnicLink.style.fontWeight = "bold";
+            } else {
+                suradnicLink.parentElement.style.display = 'none';
+            }
+
+            function setupImage(imgElement, src) {
+                if (!imgElement || !src) {
+                    if (imgElement) imgElement.style.display = 'none';
+                    return;
+                }
+                imgElement.src = src;
+                imgElement.style.display = 'block';
+                imgElement.onclick = function () {
+                    document.getElementById('lightbox-img').src = src;
+                    document.getElementById('lightbox').style.display = 'flex';
+                };
+            }
+
+            setupImage(document.getElementById('obrazok'), p.PICURL ? `${folder}/${p.PICURL}` : null);
+            setupImage(document.getElementById('obrazok2'), p.PICURL1 ? `${folder}/${p.PICURL1}` : null);
+            setupImage(document.getElementById('obrazok3'), p.PICURL2 ? `${folder}/${p.PICURL2}` : null);
+            setupImage(document.getElementById('obrazok4'), p.PICURL3 ? `${folder}/${p.PICURL3}` : null);
+            setupImage(document.getElementById('obrazok5'), p.PICURL4 ? `${folder}/${p.PICURL4}` : null);
+            setupImage(document.getElementById('obrazok6'), p.PICURL5 ? `${folder}/${p.PICURL5}` : null);
+
+        } else {
+            document.getElementById('content').innerHTML = '<p>Objekt nebol nájdený.</p>';
+        }
+
+        document.getElementById('closeLightbox').onclick = function () {
+            document.getElementById('lightbox').style.display = 'none';
+        };
+        document.getElementById('lightbox').onclick = function (e) {
+            if (e.target === this) this.style.display = 'none';
+        };
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Detvička</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="index.css">
+
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+
+    <script src="pamiatky.js"></script>
+    <script src="muzea.js"></script>
+    <script src="kulturne_inst.js"></script>
+    <script src="sakralne_pam.js"></script>
+    <script src="turistika.js"></script>
+    <script src="turisticke_atr.js"></script>
+    <script src="narodne_kult.js"></script>
+
+
+
+    <script src="https://unpkg.com/leaflet-sidebar@0.2.4/src/L.Control.Sidebar.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-sidebar@0.2.4/src/L.Control.Sidebar.css" />
+
+    <script src="https://unpkg.com/mustache@4.2.0/mustache.min.js" defer></script>
+
+    <script src="https://unpkg.com/leaflet-search@4.0.0/dist/leaflet-search.src.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-search@4.0.0/dist/leaflet-search.src.css" />
+
+
+
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+
+
+
+
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE-edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <nav>
+        <div class="logo">
+            <h2>
+                <a href="https://www.detva.sk/">
+                    <img src="obrazky/logo.png" alt="Logo">
+                </a>
+            </h2>
+        </div>
+
+        <h1>Pamätihodnosti obce Detva</h1>
+
+        <ul>
+            <li><a href="index.html">Domov</a></li>
+            <li><a href="nehmotne.html"> Významné osobnosti a historické publikácie</a></li>
+        </ul>
+    </nav>
+
+    <div id="map"></div>
+    <div id="sidebar"></div>
+
+    <script id="sidebar-template" type="x-tmpl-mustache">
+        <button class="close-btn">&times;</button>
+        <h1>{{nazov}}</h1>
+        <p>{{text_k}}</p>
+        {{{picurl}}}
+        <p>
+            {{text}}
+            <a href="#"  style="color: blue; text-decoration:underline; cursor:pointer;" onclick="openDetail({{id}},'{{typ}}');">
+                ...viac
+            </a>
+        </p>
+    </script>
+
+    <script>
+        var map = L.map('map').setView([48.5599, 19.4186], 13);
+
+        var OpenStreetMap = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            maxZoom: 18,
+            errorTileUrl: 'data:image/png;base64,...'
+        }).addTo(map);
+
+        var OpenTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: 'Map data: &copy; OpenStreetMap | Map style: &copy; OpenTopoMap',
+            errorTileUrl: 'data:image/png;base64,...'
+        });
+
+        const clusterOptions = {
+            maxClusterRadius: zoom => zoom < 13 ? 120 : 50,
+            disableClusteringAtZoom: 18,
+        };
+
+
+        const Pamiatky_cluster = L.markerClusterGroup(clusterOptions);
+        L.geoJSON(Pamiatky, {
+            onEachFeature: populatesidebar_with_type('Pamiatky'),
+            pointToLayer: function (feature, latlng) {
+                const marker = L.marker(latlng, {
+                    icon: L.icon({
+                        iconUrl: 'ikony/pamiatka.png',
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 32]
+                    })
+                });
+                Pamiatky_cluster.addLayer(marker);
+                return marker;
+            }
+        });
+        Pamiatky_cluster.addTo(map);
+
+
+        const Muzea_cluster = L.markerClusterGroup(clusterOptions);
+        L.geoJSON(Muzea, {
+            onEachFeature: populatesidebar_with_type('Muzeum'),
+            pointToLayer: function (feature, latlng) {
+                const marker = L.marker(latlng, {
+                    icon: L.icon({
+                        iconUrl: 'ikony/muzea.png',
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 32]
+                    })
+                });
+                Muzea_cluster.addLayer(marker);
+                return marker;
+            }
+        });
+        Muzea_cluster.addTo(map);
+
+
+        const Kulturne_inst_cluster = L.markerClusterGroup(clusterOptions);
+        L.geoJSON(Kulturne_inst, {
+            onEachFeature: populatesidebar_with_type('Kulturne_inst'),
+            pointToLayer: function (feature, latlng) {
+                const marker = L.marker(latlng, {
+                    icon: L.icon({
+                        iconUrl: 'ikony/kulturne_inst.png',
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 32]
+                    })
+                });
+                Kulturne_inst_cluster.addLayer(marker);
+                return marker;
+            }
+        });
+        Kulturne_inst_cluster.addTo(map);
+
+        const Sakralne_pam_cluster = L.markerClusterGroup(clusterOptions);
+        L.geoJSON(Sakralne_pam, {
+            onEachFeature: populatesidebar_with_type('Sakralne_pam'),
+            pointToLayer: function (feature, latlng) {
+                const marker = L.marker(latlng, {
+                    icon: L.icon({
+                        iconUrl: 'ikony/sakralna_pam.png',
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 32]
+                    })
+                });
+                Sakralne_pam_cluster.addLayer(marker);
+                return marker;
+            }
+        });
+        Sakralne_pam_cluster.addTo(map);
+
+
+        const Turistika_cluster = L.markerClusterGroup(clusterOptions);
+        L.geoJSON(Turistika, {
+            onEachFeature: populatesidebar_with_type('Turistika'),
+            pointToLayer: function (feature, latlng) {
+                const marker = L.marker(latlng, {
+                    icon: L.icon({
+                        iconUrl: 'ikony/turistika.png',
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 32]
+                    })
+                });
+                Turistika_cluster.addLayer(marker);
+                return marker;
+            }
+        });
+        Turistika_cluster.addTo(map);
+
+
+        const Turisticke_atr_cluster = L.markerClusterGroup(clusterOptions);
+        L.geoJSON(Turisticke_atr, {
+            onEachFeature: populatesidebar_with_type('Turisticke_atr'),
+            pointToLayer: function (feature, latlng) {
+                const marker = L.marker(latlng, {
+                    icon: L.icon({
+                        iconUrl: 'ikony/tur_atr.png',
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 32]
+                    })
+                });
+                Turisticke_atr_cluster.addLayer(marker);
+                return marker;
+            }
+        });
+        Turisticke_atr_cluster.addTo(map);
+
+
+        const Narodne_kult_cluster = L.markerClusterGroup(clusterOptions);
+        L.geoJSON(Narodne_kult, {
+            onEachFeature: populatesidebar_with_type('Narodne_kult'),
+            pointToLayer: function (feature, latlng) {
+                const marker = L.marker(latlng, {
+                    icon: L.icon({
+                        iconUrl: 'ikony/narodne_kult.png',
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 32]
+                    })
+                });
+                Narodne_kult_cluster.addLayer(marker);
+                return marker;
+            }
+        });
+        Narodne_kult_cluster.addTo(map);
+
+        var baseLayers = {
+            'Open Street Map': OpenStreetMap,
+            'Open Topo Map': OpenTopoMap
+        };
+
+        const overLayers = {
+            "Pamiatky": Pamiatky_cluster,
+            "Múzeá": Muzea_cluster,
+            "Kultúrne inštitúcie": Kulturne_inst_cluster,
+            "Sakrálne pamiatky": Sakralne_pam_cluster,
+            "Turistika": Turistika_cluster,
+            "Turistické atrakcie": Turisticke_atr_cluster,
+            "Národné kultúrne pamiatky": Narodne_kult_cluster,
+        };
+
+
+        var krizeLayer = L.layerGroup();
+
+        krizeLayer.on('add', function () {
+            window.open(
+                'https://www.google.com/maps/d/u/0/viewer?mid=1LgwWEdHSJi0C9LLRZmJb57eqaAg&ll=48.59512247983497%2C19.596678650237447&z=11',
+                '_blank'
+            );
+        });
+
+        overLayers["Kríže"] = krizeLayer;
+
+        L.control.layers(baseLayers, overLayers).addTo(map);
+
+
+        var sidebar = L.control.sidebar('sidebar', {
+            position: 'left',
+            closeButton: false
+        });
+        map.addControl(sidebar);
+
+        function openDetail(id, typ) {
+            if (typ === 'Pamiatky') {
+                window.location.href = `podstranka_pamiatky.html?id=${id}`;
+            } else if (typ === 'Muzeum') {
+                window.location.href = `podstranka_muzea.html?id=${id}`;
+            } else if (typ === 'Kulturne_inst') {
+                window.location.href = `podstranka_kulturne_inst.html?id=${id}`;
+            } else if (typ === 'Sakralne_pam') {
+                window.location.href = `podstranka_sakralne_pam.html?id=${id}`;
+            } else if (typ === 'Turistika') {
+                window.location.href = `podstranka_turistika.html?id=${id}`;
+            } else if (typ === 'Turisticke_atr') {
+                window.location.href = `podstranka_turisticke_atr.html?id=${id}`;
+            } else if (typ === 'Narodne_kult') {
+                window.location.href = `podstranka_narodne_kult.html?id=${id}`;
+            }
+        }
+
+
+        function populatesidebar_with_type(typ) {
+            return function (feature, layer) {
+
+
+                var nazov = feature.properties.Nazov || 'Bez názvu';
+                feature.properties.searchName = nazov;
+
+                layer.bindTooltip(nazov, {
+                    permanent: false,
+                    direction: "top"
+                });
+
+
+                layer.on('click', function () {
+
+                    var id = feature.id || feature.properties.ID || 0;
+                    var pic = feature.properties.PICURL || '';
+                    var text_k = feature.properties.Text_k || '';
+                    var text = feature.properties.Text || '';
+                    var folder = '';
+
+                    if (typ === 'Pamiatky') folder = 'pamiatky';
+                    else if (typ === 'Muzeum') folder = 'muzea';
+                    else if (typ === 'Kulturne_inst') folder = 'kulturne_inst';
+                    else if (typ === 'Sakralne_pam') folder = 'sakralne_pam';
+                    else if (typ === 'Turistika') folder = 'turistika';
+                    else if (typ === 'Turisticke_atr') folder = 'turisticke_atr';
+                    else if (typ === 'Narodne_kult') folder = 'narodne_kult';
+
+
+
+                    var imageHtml = pic && pic.trim() !== ''
+                        ? `<img src="obrazky/${folder}/${pic}" style="max-width:400px; height:300px; border-radius:8px; cursor:pointer;" onclick="openDetail(${id}, '${typ}')">`
+                        : `<img src="obrazky/${folder}/default.png" style="max-width:400px; height:300px;" onclick="openDetail(${id}, '${typ}')">`;
+
+
+                    var data = {
+                        id: id,
+                        typ: typ,
+                        nazov: nazov,
+                        text_k: text_k,
+                        picurl: imageHtml,
+                        text: text
+                    };
+
+                    var template = document.getElementById('sidebar-template').innerHTML;
+                    var sidebarEl = document.getElementById('sidebar');
+                    sidebarEl.innerHTML = Mustache.render(template, data);
+
+                    if (typ === 'Pamiatky') sidebarEl.querySelector('h1').style.color = '#198915';
+                    else if (typ === 'Muzeum') sidebarEl.querySelector('h1').style.color = '#1e6ba2';
+                    else if (typ === 'Kulturne_inst') sidebarEl.querySelector('h1').style.color = '#939523';
+                    else if (typ === 'Sakralne_pam') sidebarEl.querySelector('h1').style.color = '#912d2d';
+                    else if (typ === 'Turistika') sidebarEl.querySelector('h1').style.color = '#125519';
+                    else if (typ === 'Turisticke_atr') sidebarEl.querySelector('h1').style.color = '#712395';
+                    else if (typ === 'Narodne_kult') sidebarEl.querySelector('h1').style.color = '#113976';
+
+                    sidebar.show();
+                });
+            };
+        }
+
+        document.getElementById('sidebar').addEventListener('click', function (event) {
+            if (event.target.classList.contains('close-btn')) {
+                sidebar.hide();
+            }
+        });
+
+
+
+        const allLayers = L.layerGroup([
+            Pamiatky_cluster,
+            Muzea_cluster,
+            Kulturne_inst_cluster,
+            Sakralne_pam_cluster,
+            Turistika_cluster,
+            Turisticke_atr_cluster,
+            Narodne_kult_cluster,
+        ]);
+
+
+        const searchControl = new L.Control.Search({
+            layer: allLayers,
+            propertyName: 'searchName',
+            moveToLocation: function (latlng, nazov, map) {
+                map.setView(latlng, 16);
+            },
+            textPlaceholder: 'Hľadaj pamiatky / múzeá / kultúrne inštitúcie...',
+        });
+
+        map.addControl(searchControl);
+
+
+
+        requestAnimationFrame(() => {
+            map.invalidateSize();
+        });
+
+
+
+
+
+
+
+    </script>
+</body>
+
+</html>
